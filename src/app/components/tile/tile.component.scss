@@ -1,0 +1,18 @@
+.tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  width: 100%;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px #636363;
+  }
+
+  &__number {
+    font-size: 48px;
+    color: #454545;
+  }
+}

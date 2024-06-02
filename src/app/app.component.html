@@ -1,0 +1,8 @@
+<div class="container">
+  <h1 class="title pt-5 pb-4">Masonry</h1>
+  <div class="tiles__container">
+    @for(tile of tiles; track tile){
+    <app-tile [tile]="tile"></app-tile>
+    }
+  </div>
+</div>
