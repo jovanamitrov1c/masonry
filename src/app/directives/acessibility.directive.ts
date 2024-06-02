@@ -51,20 +51,47 @@ export class AcessibilityDirective implements AfterViewInit {
 
   @HostListener('keydown.arrowup', ['$event'])
   onKeyDownArrowUp(e: KeyboardEvent) {
-    console.log('arrow up event', e);
-    console.log('arrow up');
+    e.preventDefault();
+
+    const tileIndex = this.getElementIndexFromEvent(e);
+    this.navigateUpThroughColumn(tileIndex);
   }
 
   @HostListener('keydown.arrowdown', ['$event'])
   onKeyDownArrowDown(e: KeyboardEvent) {
-    console.log('arrow down event', e);
-    console.log('arrow down');
+    e.preventDefault();
+
+    const tileIndex = this.getElementIndexFromEvent(e);
+    this.navigateDownThroughColumn(tileIndex);
+  }
+
+  private navigateDownThroughColumn(index: number) {
+    const currentColumnIndex = this.getCurrentColumnIndex(index);
+    const firstElementIndex = this.firstItemIndexes[currentColumnIndex];
+    const lastElementIndex = this.isInLastColumn(index)
+      ? this.tiles.length - 1
+      : this.firstItemIndexes[currentColumnIndex + 1] - 1;
+
+    const nextElementIndex =
+      index === lastElementIndex ? firstElementIndex : index + 1;
+    this.focusTileWithIndex(nextElementIndex);
+  }
+
+  private navigateUpThroughColumn(index: number) {
+    const currentColumnIndex = this.getCurrentColumnIndex(index);
+    const firstElementIndex = this.firstItemIndexes[currentColumnIndex];
+    const lastElementIndex = this.isInLastColumn(index)
+      ? this.tiles.length - 1
+      : this.firstItemIndexes[currentColumnIndex + 1] - 1;
+
+    const nextElementIndex =
+      index === firstElementIndex ? lastElementIndex : index - 1;
+    this.focusTileWithIndex(nextElementIndex);
   }
 
   private focusOutsideOfLayout() {
     this.tiles.forEach((tile) => {
       tile.nativeElement.attributes['tabindex'].value = -1;
-      console.log(tile.nativeElement.attributes['tabindex'].value);
     });
 
     interval(10)
