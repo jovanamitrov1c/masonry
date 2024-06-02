@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   ContentChildren,
   Directive,
   ElementRef,
@@ -6,34 +7,44 @@ import {
   QueryList,
 } from '@angular/core';
 import { TileComponent } from '../components/tile/tile.component';
+import { interval, take } from 'rxjs';
+
+interface ColumnIndex {
+  start: number;
+  end: number;
+}
 
 @Directive({
   selector: '[acessibility]',
   standalone: true,
 })
-export class AcessibilityDirective {
+export class AcessibilityDirective implements AfterViewInit {
   @ContentChildren(TileComponent, { read: ElementRef })
-  public tileComponents: QueryList<ElementRef>;
+  public tiles: QueryList<ElementRef>;
+
+  firstItemIndexes: number[];
+
+  ngAfterViewInit(): void {
+    this.firstItemIndexes = this.getColumnFirstItemsIndexes();
+  }
+
+  @HostListener('keydown.tab', ['$event'])
+  onKeyDownTab(e: KeyboardEvent) {
+    const tileIndex = this.getElementIndexFromEvent(e);
+
+    if (this.isInLastColumn(tileIndex)) {
+      this.focusOutsideOfLayout();
+      return;
+    }
+
+    e.preventDefault();
+    this.focusOnNextColumn(tileIndex);
+  }
 
   @HostListener('keydown.shift.tab', ['$event'])
   onKeyDownShiftTab(e: KeyboardEvent) {
     console.log('shift tab event', e);
     console.log('shift and tab');
-  }
-
-  @HostListener('keydown.tab', ['$event'])
-  onKeyDownTab(e: KeyboardEvent) {
-    console.log(e);
-    e.preventDefault();
-
-    const currentIndexx = (e.target as any).attributes['data-index'].value;
-    console.log(currentIndexx);
-
-    const el = this.tileComponents.find(
-      (tile: ElementRef) =>
-        tile.nativeElement.attributes['data-index'].value === '6'
-    );
-    el?.nativeElement.focus();
   }
 
   @HostListener('keydown.arrowup', ['$event'])
@@ -48,5 +59,59 @@ export class AcessibilityDirective {
     console.log('arrow down');
   }
 
-  constructor() {}
+  private focusOutsideOfLayout() {
+    this.tiles.forEach((tile) => {
+      tile.nativeElement.attributes['tabindex'].value = -1;
+      console.log(tile.nativeElement.attributes['tabindex'].value);
+    });
+
+    interval(10)
+      .pipe(take(1))
+      .subscribe(() => {
+        this.tiles.forEach((tile) => {
+          tile.nativeElement.attributes['tabindex'].value = 0;
+        });
+      });
+  }
+
+  private focusTileWithIndex(index: number) {
+    const el = this.tiles.find(
+      (tile: ElementRef) =>
+        tile.nativeElement.attributes['data-index'].value === index + ''
+    );
+    el?.nativeElement.focus();
+  }
+
+  private getNextColumnIndex(tileIndex: number): number {
+    let nextColumnIndex = 0;
+    for (let i = 0; i < this.firstItemIndexes.length - 1; i++) {
+      if (this.firstItemIndexes[i + 1] > tileIndex) {
+        nextColumnIndex = i + 1;
+        break;
+      }
+    }
+    return nextColumnIndex;
+  }
+
+  private focusOnNextColumn(tileIndex: number) {
+    const nextColumnIndex = this.getNextColumnIndex(tileIndex);
+    this.focusTileWithIndex(this.firstItemIndexes[nextColumnIndex]);
+  }
+
+  private isInLastColumn(tileIndex: number): boolean {
+    const lastColumnFirstItemIndex =
+      this.firstItemIndexes[this.firstItemIndexes.length - 1];
+    return tileIndex >= lastColumnFirstItemIndex;
+  }
+
+  private getColumnFirstItemsIndexes() {
+    return this.tiles
+      .filter((tile) => tile.nativeElement.offsetTop === 0)
+      .map((tile) => Number(tile.nativeElement.attributes['data-index'].value));
+  }
+
+  private getElementIndexFromEvent(event: KeyboardEvent): number {
+    const index = (event.target as any).attributes['data-index'].value;
+    return Number(index);
+  }
 }
