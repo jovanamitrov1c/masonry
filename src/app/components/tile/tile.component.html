@@ -1,7 +1,9 @@
-<button
+<div
   class="tile mb-3"
   [style.height.px]="tile.height"
   [style.background-color]="tile.colour"
 >
-  <span class="tile__number">{{ tile.number }}</span>
-</button>
+  <div class="d-flex w-100 h-100 justify-content-center align-items-center">
+    <span class="tile__number">{{ tile.number }}</span>
+  </div>
+</div>
