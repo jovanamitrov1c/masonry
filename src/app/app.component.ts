@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
 import { TileComponent } from './components/tile/tile.component';
+import { AcessibilityDirective } from './directives/acessibility.directive';
 
 const colours: string[] = [
   '#0081a7',
@@ -13,7 +13,7 @@ const colours: string[] = [
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [TileComponent],
+  imports: [TileComponent, AcessibilityDirective],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
