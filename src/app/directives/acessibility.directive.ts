@@ -9,11 +9,6 @@ import {
 import { TileComponent } from '../components/tile/tile.component';
 import { interval, take } from 'rxjs';
 
-interface ColumnIndex {
-  start: number;
-  end: number;
-}
-
 @Directive({
   selector: '[acessibility]',
   standalone: true,
@@ -46,6 +41,7 @@ export class AcessibilityDirective implements AfterViewInit {
     const tileIndex = this.getElementIndexFromEvent(e);
 
     if (this.isInFirstColumn(tileIndex)) {
+      this.focusOutsideOfLayout();
       return;
     }
 
@@ -89,35 +85,29 @@ export class AcessibilityDirective implements AfterViewInit {
   }
 
   private getCurrentColumnIndex(tileIndex: number): number {
+    if (tileIndex >= this.firstItemIndexes[this.firstItemIndexes.length - 1]) {
+      return this.firstItemIndexes.length - 1;
+    }
+
     let currentColumnIndex = 0;
     for (let i = 0; i < this.firstItemIndexes.length - 1; i++) {
-      if (this.firstItemIndexes[i + 1] >= tileIndex) {
+      if (this.firstItemIndexes[i + 1] > tileIndex) {
         currentColumnIndex = i;
         break;
       }
     }
-    return currentColumnIndex;
-  }
 
-  private getNextColumnIndex(tileIndex: number): number {
-    let nextColumnIndex = 0;
-    for (let i = 0; i < this.firstItemIndexes.length - 1; i++) {
-      if (this.firstItemIndexes[i + 1] > tileIndex) {
-        nextColumnIndex = i + 1;
-        break;
-      }
-    }
-    return nextColumnIndex;
+    return currentColumnIndex;
   }
 
   private focusOnPreviousColumn(tileIndex: number) {
     const currentColumnIndex = this.getCurrentColumnIndex(tileIndex);
-    this.focusTileWithIndex(this.firstItemIndexes[currentColumnIndex]);
+    this.focusTileWithIndex(this.firstItemIndexes[currentColumnIndex] - 1);
   }
 
   private focusOnNextColumn(tileIndex: number) {
-    const nextColumnIndex = this.getNextColumnIndex(tileIndex);
-    this.focusTileWithIndex(this.firstItemIndexes[nextColumnIndex]);
+    const currentColumnIndex = this.getCurrentColumnIndex(tileIndex);
+    this.focusTileWithIndex(this.firstItemIndexes[currentColumnIndex + 1]);
   }
 
   private isInFirstColumn(tileIndex: number) {
