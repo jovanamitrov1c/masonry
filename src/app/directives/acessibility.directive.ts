@@ -43,8 +43,14 @@ export class AcessibilityDirective implements AfterViewInit {
 
   @HostListener('keydown.shift.tab', ['$event'])
   onKeyDownShiftTab(e: KeyboardEvent) {
-    console.log('shift tab event', e);
-    console.log('shift and tab');
+    const tileIndex = this.getElementIndexFromEvent(e);
+
+    if (this.isInFirstColumn(tileIndex)) {
+      return;
+    }
+
+    e.preventDefault();
+    this.focusOnPreviousColumn(tileIndex);
   }
 
   @HostListener('keydown.arrowup', ['$event'])
@@ -82,6 +88,17 @@ export class AcessibilityDirective implements AfterViewInit {
     el?.nativeElement.focus();
   }
 
+  private getCurrentColumnIndex(tileIndex: number): number {
+    let currentColumnIndex = 0;
+    for (let i = 0; i < this.firstItemIndexes.length - 1; i++) {
+      if (this.firstItemIndexes[i + 1] >= tileIndex) {
+        currentColumnIndex = i;
+        break;
+      }
+    }
+    return currentColumnIndex;
+  }
+
   private getNextColumnIndex(tileIndex: number): number {
     let nextColumnIndex = 0;
     for (let i = 0; i < this.firstItemIndexes.length - 1; i++) {
@@ -93,12 +110,28 @@ export class AcessibilityDirective implements AfterViewInit {
     return nextColumnIndex;
   }
 
+  private focusOnPreviousColumn(tileIndex: number) {
+    const currentColumnIndex = this.getCurrentColumnIndex(tileIndex);
+    this.focusTileWithIndex(this.firstItemIndexes[currentColumnIndex]);
+  }
+
   private focusOnNextColumn(tileIndex: number) {
     const nextColumnIndex = this.getNextColumnIndex(tileIndex);
     this.focusTileWithIndex(this.firstItemIndexes[nextColumnIndex]);
   }
 
+  private isInFirstColumn(tileIndex: number) {
+    if (this.firstItemIndexes.length === 1) {
+      return true;
+    }
+    return tileIndex < this.firstItemIndexes[1];
+  }
+
   private isInLastColumn(tileIndex: number): boolean {
+    if (this.firstItemIndexes.length === 1) {
+      return true;
+    }
+
     const lastColumnFirstItemIndex =
       this.firstItemIndexes[this.firstItemIndexes.length - 1];
     return tileIndex >= lastColumnFirstItemIndex;
